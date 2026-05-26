@@ -1,150 +1,370 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Menu Board</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        .font-serif { font-family: 'Cormorant Garamond', serif; }
-        .font-sans { font-family: 'Inter', sans-serif; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Live Menu Board</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@300;400;600&display=swap"
+rel="stylesheet">
+
+<style>
+.font-serif {
+    font-family: 'Cormorant Garamond', serif;
+}
+
+.font-sans {
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background: #111;
+}
+</style>
 </head>
-<body class="bg-[#111] text-stone-100 font-sans min-h-screen flex items-center justify-center overflow-hidden">
 
-    <script>
-        // REPLACE THIS WITH YOUR ACTUAL GOOGLE SHEET ID
-        const SHEET_ID = 'e/2PACX-1vTdctD1zk3cv8cjGUJIk6tMUG91vdsveUXPtQz8cMqB-W5lyipJFc286R1VuNpps05_nLSNerE3x-TF';
-        const TSV_URL = 'https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?output=tsv';
-    </script>
+<body class="text-stone-100 font-sans min-h-screen overflow-hidden">
 
-    <!-- TV Container (Simulates a clean 1080p layout) -->
-    <div class="w-screen h-screen bg-[#0d0d0c] p-12 flex flex-col justify-between relative">
-        
-        <!-- Header -->
-        <div class="text-center mb-4">
-            <h1 id="menu-title" class="font-serif text-6xl tracking-widest text-[#f5f5f4] uppercase font-semibold">Aura Artisanal</h1>
-            <p class="text-xs uppercase tracking-[0.3em] text-amber-500 font-semibold mt-2">Sip &bull; Savor &bull; Gather</p>
-            <div class="w-24 h-[1px] bg-amber-500/50 mx-auto mt-4"></div>
-        </div>
+<!-- Published Google Sheet -->
+<script>
+const TSV_URL =
+'https://docs.google.com/spreadsheets/d/e/2PACX-1vTdctD1zk3cv8cjGUJIk6tMUG91VdsveUXPtQz8cMqB-W5lyipJFc286R1VuNppsO5_nLSNerE3x-TF/pub?gid=0&single=true&output=tsv';
 
-        <!-- Main Categories Grid -->
-        <div class="grid grid-cols-2 gap-x-16 gap-y-8 my-auto px-6">
-            
-            <!-- Category 1: Left Side -->
-            <div class="space-y-6">
-                <h2 id="cat-title-1" class="font-serif text-3xl text-amber-500/90 border-b border-stone-800 pb-2 italic">Beverages</h2>
-                <div id="category-1-items" class="space-y-6">
-                    <!-- Dynamic items loaded here -->
-                    <div class="animate-pulse flex space-x-4">
-                        <div class="flex-1 space-y-4 py-1"><div class="h-4 bg-stone-800 rounded"></div></div>
-                    </div>
-                </div>
-            </div>
+const REFRESH_INTERVAL = 30000;
+</script>
 
-            <!-- Category 2: Right Side -->
-            <div class="space-y-6">
-                <h2 id="cat-title-2" class="font-serif text-3xl text-amber-500/90 border-b border-stone-800 pb-2 italic">Pastries & Eats</h2>
-                <div id="category-2-items" class="space-y-6">
-                    <!-- Dynamic items loaded here -->
-                    <div class="animate-pulse flex space-x-4">
-                        <div class="flex-1 space-y-4 py-1"><div class="h-4 bg-stone-800 rounded"></div></div>
-                    </div>
-                </div>
-            </div>
+<!-- APP -->
+<div class="w-screen h-screen bg-[#0d0d0c] p-12 flex flex-col">
 
-        </div>
+<!-- HEADER -->
+<div class="text-center">
 
-        <!-- Footer -->
-        <div class="flex justify-between items-center text-[11px] text-stone-500 tracking-wider uppercase border-t border-stone-900 pt-4">
-            <span>Cebu City, Philippines</span>
-            <span>All prices are VAT-inclusive</span>
-            <span>Powered by YourBrand Solutions</span>
-        </div>
-    </div>
+<h1
+id="menu-title"
+class="font-serif text-6xl uppercase tracking-widest font-semibold text-stone-100">
 
-    <!-- Live Data Fetching & Rendering Script -->
-    <script>
-        async function fetchMenu() {
-            try {
-                // Add a cache-busting timestamp to force live updates
-                const response = await fetch(`${TSV_URL}&timestamp=${new Date().getTime()}`);
-                if (!response.ok) throw new Error('Failed to fetch sheet data.');
-                
-                const data = await response.text();
-                parseAndRender(data);
-            } catch (error) {
-                console.error("Database connection failed:", error);
-            }
-        }
+Aura Artisanal
 
-        function parseAndRender(tsvText) {
-            const lines = tsvText.split('\n');
-            const items = [];
+</h1>
 
-            // Skip header (Row 1), loop through rows
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                const cols = lines[i].split('\t');
-                
-                if (cols.length >= 5) {
-                    items.push({
-                        category: cols[0].trim(),
-                        name: cols[1].trim(),
-                        description: cols[2].trim(),
-                        price: cols[3].trim(),
-                        soldOut: cols[4].trim().toLowerCase() === 'true'
-                    });
-                }
-            }
+<p class="mt-3 text-xs uppercase tracking-[0.3em] text-amber-500">
 
-            // Get unique category names from our database entries
-            const categories = [...new Set(items.map(item => item.category))];
-            
-            // Render Categories
-            if (categories[0]) document.getElementById('cat-title-1').innerText = categories[0];
-            if (categories[1]) document.getElementById('cat-title-2').innerText = categories[1];
+Sip • Savor • Gather
 
-            const cat1Container = document.getElementById('category-1-items');
-            const cat2Container = document.getElementById('category-2-items');
+</p>
 
-            cat1Container.innerHTML = '';
-            cat2Container.innerHTML = '';
+<div class="w-24 h-px bg-amber-500/40 mx-auto mt-4"></div>
 
-            items.forEach(item => {
-                const itemHTML = `
-                    <div class="flex justify-between items-baseline relative min-h-[50px] transition-opacity duration-300">
-                        <div class="pr-4 max-w-[70%]">
-                            <h4 class="font-sans font-semibold text-lg text-stone-200">${item.name}</h4>
-                            <p class="text-xs text-stone-400 mt-0.5 leading-relaxed">${item.description}</p>
-                        </div>
-                        <span class="flex-grow border-b border-dotted border-stone-800 mx-2"></span>
-                        <span class="font-serif font-semibold text-xl text-stone-100">₱${item.price}</span>
-                        
-                        ${item.soldOut ? `
-                        <div class="absolute inset-0 bg-[#0d0d0c]/90 flex items-center justify-center">
-                            <span class="border border-red-500 text-red-500 font-bold tracking-widest text-[10px] px-2 py-0.5 rounded rotate-[-2deg]">
-                                OUT OF STOCK
-                            </span>
-                        </div>
-                        ` : ''}
-                    </div>
-                `;
+</div>
 
-                if (item.category === categories[0]) {
-                    cat1Container.innerHTML += itemHTML;
-                } else {
-                    cat2Container.innerHTML += itemHTML;
-                }
-            });
-        }
+<!-- CONTENT -->
 
-        // Fetch once on page load
-        fetchMenu();
+<div
+class="grid grid-cols-2 gap-16 px-6 my-auto">
 
-        // Check for updates every 30 seconds (30000ms)
-        setInterval(fetchMenu, 30000);
-    </script>
+<!-- LEFT -->
+
+<div>
+
+<h2
+id="cat-title-1"
+class="font-serif text-3xl italic text-amber-500 border-b border-stone-800 pb-2">
+
+Loading...
+
+</h2>
+
+<div
+id="category-1-items"
+class="space-y-6 mt-6">
+
+</div>
+
+</div>
+
+<!-- RIGHT -->
+
+<div>
+
+<h2
+id="cat-title-2"
+class="font-serif text-3xl italic text-amber-500 border-b border-stone-800 pb-2">
+
+Loading...
+
+</h2>
+
+<div
+id="category-2-items"
+class="space-y-6 mt-6">
+
+</div>
+
+</div>
+
+</div>
+
+<!-- FOOTER -->
+
+<div
+class="border-t border-stone-900 pt-4
+flex justify-between
+text-[11px]
+uppercase
+tracking-wider
+text-stone-500">
+
+<span>Cebu City, Philippines</span>
+
+<span>All prices VAT inclusive</span>
+
+<span>Powered by YourBrand Solutions</span>
+
+</div>
+
+</div>
+
+<script>
+
+function renderMessage(msg){
+
+document.getElementById("category-1-items").innerHTML =
+`<div class="text-stone-500">${msg}</div>`;
+
+document.getElementById("category-2-items").innerHTML =
+"";
+
+}
+
+async function fetchMenu(){
+
+try{
+
+const controller =
+new AbortController();
+
+const timeout =
+setTimeout(
+()=>controller.abort(),
+10000
+);
+
+const response =
+await fetch(
+`${TSV_URL}&t=${Date.now()}`,
+{
+signal: controller.signal
+}
+);
+
+clearTimeout(timeout);
+
+if(!response.ok){
+
+throw new Error(
+`HTTP ${response.status}`
+);
+
+}
+
+const text =
+await response.text();
+
+parseAndRender(text);
+
+}
+catch(error){
+
+console.error(error);
+
+renderMessage(
+"Unable to load menu."
+);
+
+}
+
+}
+
+function parseAndRender(tsv){
+
+const rows =
+tsv
+.trim()
+.split("\n")
+.slice(1);
+
+const items=[];
+
+rows.forEach(row=>{
+
+const cols =
+row
+.split("\t")
+.map(v=>v.trim());
+
+if(cols.length<5)
+return;
+
+items.push({
+
+category:
+cols[0],
+
+name:
+cols[1],
+
+description:
+cols[2],
+
+price:
+cols[3],
+
+soldOut:
+cols[4]
+.toLowerCase()==="true"
+
+});
+
+});
+
+if(items.length===0){
+
+renderMessage(
+"No menu available"
+);
+
+return;
+
+}
+
+const categories =
+[
+...new Set(
+items.map(
+x=>x.category
+)
+)
+];
+
+document.getElementById(
+"cat-title-1"
+).textContent =
+categories[0] || "";
+
+document.getElementById(
+"cat-title-2"
+).textContent =
+categories[1] || "";
+
+const left =
+document.getElementById(
+"category-1-items"
+);
+
+const right =
+document.getElementById(
+"category-2-items"
+);
+
+left.innerHTML="";
+right.innerHTML="";
+
+items.forEach(item=>{
+
+const html=
+`
+<div class="relative flex items-start min-h-[60px]">
+
+<div class="max-w-[70%]">
+
+<div class="font-semibold text-lg">
+
+${item.name}
+
+</div>
+
+<div class="text-xs text-stone-400 mt-1">
+
+${item.description}
+
+</div>
+
+</div>
+
+<div
+class="flex-1 border-b border-dotted border-stone-800 mx-3 mt-4">
+</div>
+
+<div
+class="font-serif text-xl">
+
+₱${item.price}
+
+</div>
+
+${
+item.soldOut
+?
+
+`
+<div
+class="absolute inset-0
+bg-black/90
+flex items-center justify-center">
+
+<div
+class="border
+border-red-500
+text-red-500
+px-3 py-1
+text-xs
+tracking-widest">
+
+OUT OF STOCK
+
+</div>
+
+</div>
+`
+
+:
+
+""
+
+}
+
+</div>
+`;
+
+if(
+item.category===categories[0]
+){
+
+left.innerHTML+=html;
+
+}
+else{
+
+right.innerHTML+=html;
+
+}
+
+});
+
+}
+
+fetchMenu();
+
+setInterval(
+fetchMenu,
+REFRESH_INTERVAL
+);
+
+</script>
+
 </body>
 </html>
